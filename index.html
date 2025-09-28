@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Strategic Turnaround Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      text-align: center;
+      background: #fff;
+      transition: background 0.5s;
+    }
+    #game {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1, h2, h3 {
+      margin-bottom: 20px;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    button:hover { opacity: 0.8; }
+    .option { width: 80%; }
+    .hidden { display: none; }
+    #confetti {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #scoreboard {
+      font-size: 14px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div id="game">
+    <h1>Strategic Turnaround Game</h1>
+    <p>Enter your name to begin:</p>
+    <input type="text" id="playerName" placeholder="Your Name">
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <script>
+    const companies = [
+      {
+        name: "Zara",
+        colors: {bg:"#000", text:"#fff", btn:"#fff", btnText:"#000"},
+        scenarios: [
+          {q:"Zara focuses on fast runway-to-retail cycles. Which strategy is this?", 
+           options:["Market Penetration","Market Development","Product Development","Diversification"], 
+           answer:2},
+          {q:"Which factor in PESTEL pressured Zara towards sustainability?", 
+           options:["Political","Technological","Environmental","Legal"], 
+           answer:2},
+          {q:"Zara’s vertically integrated supply chain is a:", 
+           options:["Star","Sustained Competitive Advantage (VRIO)","Dog","Threat"], 
+           answer:1},
+          {q:"Zara avoids heavy advertising. Instead, it invests in:", 
+           options:["Low-cost stores","Premium store locations","Celebrity endorsements","Wholesale"], 
+           answer:1}
+        ]
+      },
+      {
+        name: "Forever 21",
+        colors: {bg:"#ffea00", text:"#000", btn:"#000", btnText:"#ffea00"},
+        scenarios: [
+          {q:"Forever 21’s major weakness in SWOT was:", 
+           options:["Strong brand image","Sustainability practices","Weak digital presence","Inclusive sizing"], 
+           answer:2},
+          {q:"Which strategy did Forever 21 overemphasize?", 
+           options:["Product Development","Market Development","Diversification","Digitalization"], 
+           answer:1},
+          {q:"Forever 21 filed for bankruptcy in which year?", 
+           options:["2017","2018","2019","2020"], 
+           answer:2},
+          {q:"Forever 21’s retrenchment included:", 
+           options:["Opening more stores","Expanding into Europe","Closing stores and cost-cutting","Launching luxury lines"], 
+           answer:2}
+        ]
+      },
+      {
+        name: "Kodak",
+        colors: {bg:"#e3000f", text:"#ffcc00", btn:"#ffcc00", btnText:"#e3000f"},
+        scenarios: [
+          {q:"Kodak invented the digital camera in which year?", 
+           options:["1975","1985","1995","2005"], 
+           answer:0},
+          {q:"In the BCG Matrix, Kodak’s film business became a:", 
+           options:["Star","Cash Cow","Dog","Question Mark"], 
+           answer:1},
+          {q:"Which strategy did Kodak rely on for too long?", 
+           options:["Market Penetration of film","Diversification","Internationalization","Digitalization"], 
+           answer:0},
+          {q:"Kodak filed for bankruptcy in:", 
+           options:["2005","2008","2012","2016"], 
+           answer:2}
+        ]
+      },
+      {
+        name: "Fujifilm",
+        colors: {bg:"#009150", text:"#fff", btn:"#fff", btnText:"#009150"},
+        scenarios: [
+          {q:"Fujifilm diversified into which unexpected area?", 
+           options:["Smartphones","Healthcare & Cosmetics","Automobiles","Banking"], 
+           answer:1},
+          {q:"In Porter’s 5 Forces, which was HIGH for Fujifilm?", 
+           options:["Threat of Substitutes","Supplier Power","Entry Barriers","Buyer Power"], 
+           answer:0},
+          {q:"Fujifilm’s transformation plan was called:", 
+           options:["Turnaround 2020","VISION 75","Rebuild Fuji","Phoenix Plan"], 
+           answer:1},
+          {q:"Which Ansoff strategy describes Fujifilm entering cosmetics?", 
+           options:["Market Penetration","Market Development","Product Development","Diversification"], 
+           answer:3}
+        ]
+      }
+    ];
+
+    let playerName = "";
+    let score = 0;
+    let currentCompany = 0;
+    let currentScenario = 0;
+    let wrongAnswers = [];
+
+    function startGame(){
+      playerName = document.getElementById("playerName").value.trim();
+      if(!playerName){ alert("Please enter your name"); return; }
+      document.getElementById("game").innerHTML="";
+      showIntro();
+    }
+
+    function showIntro(){
+      let c = companies[currentCompany];
+      document.body.style.background=c.colors.bg;
+      document.body.style.color=c.colors.text;
+      document.getElementById("game").innerHTML=`
+        <h2>Welcome CEO of ${c.name}!</h2>
+        <p style="font-size:18px;">Get ready to make strategic decisions for ${c.name}.</p>
+        <button style="background:${c.colors.btn};color:${c.colors.btnText}" onclick="showScenario()">Start ${c.name} Scenarios</button>
+      `;
+    }
+
+    function showScenario(){
+      let c = companies[currentCompany];
+      let s = c.scenarios[currentScenario];
+      document.getElementById("game").innerHTML=`
+        <h3>${c.name} - Scenario ${currentScenario+1}</h3>
+        <p>${s.q}</p>
+        ${s.options.map((opt,i)=>
+          `<button class="option" style="background:${c.colors.btn};color:${c.colors.btnText}" onclick="checkAnswer(${i})">${opt}</button>`
+        ).join("")}
+      `;
+    }
+
+    function checkAnswer(choice){
+      let c = companies[currentCompany];
+      let s = c.scenarios[currentScenario];
+      if(choice===s.answer){
+        score++;
+      } else {
+        wrongAnswers.push({company:c.name,question:s.q,correct:s.options[s.answer]});
+      }
+      currentScenario++;
+      if(currentScenario<c.scenarios.length){
+        showScenario();
+      } else {
+        currentCompany++;
+        currentScenario=0;
+        if(currentCompany<companies.length){
+          showIntro();
+        } else {
+          endGame();
+        }
+      }
+    }
+
+    function endGame(){
+      document.body.style.background="#fff";
+      document.body.style.color="#000";
+      launchConfetti();
+
+      let total=companies.reduce((sum,c)=>sum+c.scenarios.length,0);
+      let ceoMsg = score>=total-1?"Excellent CEO":"Needs Improvement CEO";
+
+      // Company suitability based on fast responses (mock: random)
+      let bestFit = companies[Math.floor(Math.random()*companies.length)].name;
+
+      let wrongHTML = wrongAnswers.length>0?`
+        <h3>Review Incorrect Answers:</h3>
+        <ul>${wrongAnswers.map(w=>`<li><b>${w.company}:</b> ${w.question}<br>Correct: ${w.correct}</li>`).join("")}</ul>
+      `:"<p>You got everything correct!</p>";
+
+      document.getElementById("game").innerHTML=`
+        <h2>Game Over!</h2>
+        <p>${playerName}, your final score is <b>${score}/${total}</b>.</p>
+        <p>You are an <b>${ceoMsg}</b>.</p>
+        <p>You thrived best in <b>${bestFit}</b>!</p>
+        ${wrongHTML}
+      `;
+
+      saveScore(playerName,score);
+    }
+
+    function saveScore(name,score){
+      let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+      scores.push({name,score});
+      localStorage.setItem("scores",JSON.stringify(scores));
+    }
+
+    function showScores(){
+      let pass=prompt("Enter host password:");
+      if(pass!=="host123") return alert("Wrong password!");
+      let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+      console.log("=== SCOREBOARD ===");
+      scores.forEach(s=>console.log(`${s.name}: ${s.score}`));
+    }
+
+    // Confetti
+    function launchConfetti(){
+      const canvas=document.getElementById('confetti');
+      const ctx=canvas.getContext('2d');
+      canvas.width=window.innerWidth;
+      canvas.height=window.innerHeight;
+      const pieces=Array.from({length:150}).map(()=>({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        w:10,h:20,
+        color:`hsl(${Math.random()*360},100%,50%)`,
+        speed:2+Math.random()*3
+      }));
+      function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(let p of pieces){
+          ctx.fillStyle=p.color;
+          ctx.fillRect(p.x,p.y,p.w,p.h);
+          p.y+=p.speed;
+          if(p.y>canvas.height)p.y=-20;
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+  </script>
+</body>
+</html>
